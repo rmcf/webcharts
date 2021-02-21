@@ -115,7 +115,7 @@ export default {
   },
   methods: {
     financeringGetData() {
-      const api = "/json/finance.json";
+      const api = "/webcharts/json/finance.json";
       setTimeout(() => {
         axios
           .get(api)
