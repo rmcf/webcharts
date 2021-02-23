@@ -1,28 +1,34 @@
 <template>
   <q-layout view="hHh Lpr lff">
     <q-header elevated>
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="leftDrawerOpen = !leftDrawerOpen"
-        />
-
+      <q-toolbar class="bg-white text-grey-8">
+        <!-- @click="leftDrawerOpen = !leftDrawerOpen" -->
+        <q-btn flat dense round icon="menu" aria-label="Menu" />
         <q-toolbar-title>
           PoA Charts
         </q-toolbar-title>
 
-        <div>Single Page App</div>
+        <div>
+          <q-btn
+            type="a"
+            href="https://github.com/rmcf/webcharts"
+            flat
+            round
+            dense
+            icon="settings"
+          />
+        </div>
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-grey-1">
+    <q-drawer
+      v-model="leftDrawerOpen"
+      bordered
+      content-class="bg-grey-1 q-pt-lg"
+    >
       <q-list>
         <q-item-label header class="text-grey-8">
-          Essential Links
+          Available datasets
         </q-item-label>
         <EssentialLink
           v-for="link in essentialLinks"
@@ -33,42 +39,73 @@
     </q-drawer>
 
     <q-page-container>
-      <!-- table with data -->
-      <div class="q-pa-md">
+      <div class="text-h4 q-mt-lg text-center text-grey-8">
+        Budget
+      </div>
+      <div class="q-pa-lg">
+        <!-- buttons -->
         <div class="q-mb-md">
           <q-btn
             @click="financeringGetData()"
-            color="primary"
-            label="Get data"
+            icon="download"
+            color="red"
+            label="load data"
+          />
+          <q-spinner-ios
+            v-if="dataLoadingStatus"
+            class="q-ml-md q-mr-md"
+            color="light-blue"
+            size="2em"
           />
         </div>
-        <q-markup-table v-if="financeringData">
-          <thead>
-            <tr>
-              <th
-                v-for="title in financeringComputed.tableHeader"
-                :key="title"
-                class="text-left"
-              >
-                {{ title }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in financeringComputed.tableData" :key="item.nid">
-              <td v-for="(value, key) in item" :key="key" class="text-left">
-                {{ value }}
-              </td>
-            </tr>
-          </tbody>
-        </q-markup-table>
-      </div>
-      <!-- highcharts -->
-      <div class="q-pa-md">
-        <highcharts
-          v-if="financeringComputed.chartOptions"
-          :options="financeringComputed.chartOptions"
-        ></highcharts>
+
+        <!-- highcharts -->
+        <div v-if="financeringComputed.chartOptions" class="q-mb-lg">
+          <q-card>
+            <q-card-section>
+              <div class="q-pa-md">
+                <highcharts
+                  :options="financeringComputed.chartOptions"
+                ></highcharts>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- table with data -->
+        <div class="q-mb-lg">
+          <q-markup-table v-if="financeringData">
+            <thead>
+              <tr>
+                <th
+                  v-for="title in financeringComputed.tableHeader"
+                  :key="title"
+                  class="text-left"
+                >
+                  {{ title }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in financeringComputed.tableData" :key="item.nid">
+                <td v-for="(value, key) in item" :key="key" class="text-left">
+                  {{ value }}
+                </td>
+              </tr>
+              <tr>
+                <td></td>
+                <td></td>
+                <td
+                  v-for="item in financeringComputed.tableSums"
+                  :key="item"
+                  class="text-right"
+                >
+                  <strong>{{ item.toFixed(2) }}</strong>
+                </td>
+              </tr>
+            </tbody>
+          </q-markup-table>
+        </div>
       </div>
     </q-page-container>
   </q-layout>
@@ -96,9 +133,9 @@ Vue.use(VueLodash, { name: "cloneDeep", lodash: { cloneDeep } });
 
 const linksData = [
   {
-    title: "Docs",
-    caption: "quasar.dev",
-    icon: "school",
+    title: "Financerings",
+    caption: "Budget",
+    icon: "euro_symbol",
     link: "https://quasar.dev"
   }
 ];
@@ -108,25 +145,28 @@ export default {
   components: { EssentialLink, highcharts: Chart },
   data() {
     return {
-      leftDrawerOpen: false,
+      leftDrawerOpen: true,
       essentialLinks: linksData,
-      financeringData: undefined
+      financeringData: undefined,
+      dataLoadingStatus: false
     };
   },
   methods: {
+    // receiving data from API
     financeringGetData() {
-      const api = "/webcharts/json/finance.json";
+      this.dataLoadingStatus = true;
+      const api = "json/finance.json";
       setTimeout(() => {
         axios
           .get(api)
           .then(response => (this.financeringData = response.data))
           .catch(error => console.log(error))
-          .finally(() => console.log("done"));
+          .finally(() => (this.dataLoadingStatus = false));
       }, 1000);
     }
   },
   computed: {
-    // financering data prepared for table and charts
+    // financering table, chart
     financeringComputed: function() {
       // financering colors
       const financeringColors = [
@@ -136,18 +176,18 @@ export default {
         { name: "PWO: UAntwerpen", id: "53", color: "#454d6b" },
         { name: "IOF: UAntwerpen", id: "54", color: "#83d0f5" }
       ];
-      // creating immutable array
+      // immutable array of data
       var financeringArray = _.cloneDeep(this.financeringData);
       if (financeringArray) {
         // quantity of financerings
         var objectsQuantity = financeringArray.length;
         // quantity of properties
         var propertiesQuantity = Object.keys(financeringArray[0]).length;
-        // array of titles of empty proprties
+        // array of keys of empty proprties
         var removingKeys = [];
         // loop for every financering's property
         for (let counter = 0; counter < propertiesQuantity; counter++) {
-          // conter of financering with this empty property
+          // conter of financerings with this empty property
           var counterEmpty = 0;
           // loop for every financering
           financeringArray.forEach(function(item) {
@@ -164,7 +204,7 @@ export default {
             }
           });
         }
-        // removing empty keys and properties
+        // removing empty keys and properties in financerings array
         if (removingKeys.length > 0) {
           financeringArray.forEach(function(itemFin) {
             removingKeys.forEach(function(itemKey) {
@@ -198,11 +238,8 @@ export default {
             }
           });
         });
-        // chart options
+        // column chart options
         var chartOptions = {
-          // chart: {
-          //   type: "column"
-          // },
           title: {
             text: "Budget chart"
           },
@@ -227,11 +264,12 @@ export default {
             }
           },
           legend: {
+            layout: "vertical",
             align: "right",
-            x: -30,
-            verticalAlign: "top",
-            y: 25,
-            floating: true,
+            verticalAlign: "middle",
+            // x: -30,
+            // y: 25,
+            // floating: true,
             backgroundColor:
               Highcharts.defaultOptions.legend.backgroundColor || "white",
             borderColor: "#CCC",
@@ -240,8 +278,7 @@ export default {
           },
           tooltip: {
             headerFormat: "<b>{point.x}</b><br/>",
-            pointFormat:
-              "{series.name}: {point.y}<br/>Total: {point.stackTotal}"
+            pointFormat: "{series.name}: {point.y}"
           },
           plotOptions: {
             column: {
@@ -249,52 +286,29 @@ export default {
               dataLabels: {
                 enabled: false
               }
-            },
-            // width of columns
-            series: {
-              pointWidth: 25
             }
+            // // width of columns
+            // series: {
+            //   pointWidth: 35
+            // }
           },
           series: []
         };
-        // chart dynamic data
+        // column chart categories
         var chartCategories = [];
-        // loop through array of financering
         for (let key of Object.keys(financeringArray[0])) {
           if (key !== "nid" && key !== "field_proj_financiering") {
             let year = key.slice(-4);
             chartCategories.push(year);
           }
         }
+        chartOptions.xAxis.categories = chartCategories;
+        // column chart series
         var chartSeries = [];
-        var spline = {
-          type: "spline",
-          name: "Average",
-          data: [
-            300000,
-            400000,
-            250000,
-            450000,
-            320000,
-            210000,
-            280000,
-            180000,
-            510000,
-            390000,
-            250000
-          ],
-          marker: {
-            lineWidth: 2,
-            lineColor: Highcharts.getOptions().colors[3],
-            fillColor: "white"
-          }
-        };
-        // loop for every financering
         financeringArray.forEach(function(item) {
-          var financering = {};
+          var financeringObj = {};
           var data = [];
           var name = "";
-          // loop through array of financering
           for (let [key, value] of Object.entries(item)) {
             if (key !== "nid" && key !== "field_proj_financiering") {
               data.push(parseFloat(value));
@@ -302,28 +316,74 @@ export default {
             if (key === "field_proj_financiering") {
               name = value;
             }
-            financering.name = name;
-            financering.data = data;
-            financering.type = "column";
+            financeringObj.name = name;
+            financeringObj.data = data;
+            financeringObj.type = "column";
           }
           financeringColors.forEach(function(colorItem) {
             if (colorItem.id === item.nid) {
-              financering.color = colorItem.color;
+              financeringObj.color = colorItem.color;
             }
           });
-          console.log(financering.color);
-          chartSeries.push(financering);
+          chartSeries.push(financeringObj);
         });
-        chartSeries.push(spline);
-        // chart categories
-        chartOptions.xAxis.categories = chartCategories;
         chartOptions.series = chartSeries;
+        // spline chart
+        var spline = {
+          type: "spline",
+          name: "Total",
+          data: [],
+          color: "#03a9f4",
+          // dashStyle: "dash",
+          marker: {
+            lineWidth: 2,
+            lineColor: "#03a9f4",
+            fillColor: "white"
+          }
+        };
+        // function quantity of not empty properties
+        var notEmptyFunction = function(object) {
+          var notEmptyCounter = 0;
+          for (let key of Object.keys(object)) {
+            if (key) {
+              notEmptyCounter = notEmptyCounter + 1;
+            }
+          }
+          return notEmptyCounter;
+        };
+        // counter of not empty properties
+        var notEpmtyProperties = notEmptyFunction(financeringArray[0]);
+        // creating data for spline
+        var splineData = [];
+        for (let counter = 2; counter < notEpmtyProperties; counter++) {
+          var arrayValues = [];
+          var sumProp = 0;
+          financeringArray.forEach(function(item) {
+            var floatValue = 0;
+            if (Object.values(item)[counter]) {
+              let propValue = Object.values(item)[counter];
+              if (propValue === "") {
+                floatValue = 0;
+              } else {
+                floatValue = parseFloat(Object.values(item)[counter]);
+              }
+              arrayValues.push(floatValue);
+            }
+          });
+          sumProp = arrayValues.reduce(function(sum, item) {
+            return sum + item;
+          }, 0);
+          splineData.push(sumProp);
+        }
+        spline.data = splineData;
+        // adding spline to column chart
+        chartSeries.push(spline);
       }
-
       // object to return
       var result = {};
-      result.tableData = financeringArray;
       result.tableHeader = tableHeader;
+      result.tableData = financeringArray;
+      result.tableSums = splineData;
       result.chartOptions = chartOptions;
       return result;
     }

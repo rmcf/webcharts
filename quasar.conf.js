@@ -44,6 +44,7 @@ module.exports = function (/* ctx */) {
 
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
+      publicPath: "webcharts",
       // vueRouterMode: 'hash', // available values: 'hash', 'history'
 
       // transpile: false,
@@ -77,7 +78,7 @@ cfg.module.rules.push({
     devServer: {
       https: false,
       port: 8080,
-      open: true // opens browser window automatically
+      open: true, // opens browser window automatically
     },
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework
