@@ -11,7 +11,7 @@
         <div>
           <q-btn
             type="a"
-            href="https://github.com/rmcf/webcharts"
+            href="https://rmcf.github.io/webcharts"
             flat
             round
             dense
@@ -169,13 +169,13 @@ export default {
     // financering table, chart
     financeringComputed: function() {
       // financering colors
-      const financeringColors = [
-        { name: "PoA: Port of Antwerp", id: "50", color: "#ff0000" },
-        { name: "VLAIO: VLAIO", id: "51", color: "#f39200" },
-        { name: "BOF: UAntwerpen", id: "52", color: "#6c223c" },
-        { name: "PWO: UAntwerpen", id: "53", color: "#454d6b" },
-        { name: "IOF: UAntwerpen", id: "54", color: "#83d0f5" }
-      ];
+      // const financeringColors = [
+      //   { name: "PoA: Port of Antwerp", id: "50", color: "#ff0000" },
+      //   { name: "VLAIO: VLAIO", id: "51", color: "#f39200" },
+      //   { name: "BOF: UAntwerpen", id: "52", color: "#6c223c" },
+      //   { name: "PWO: UAntwerpen", id: "53", color: "#454d6b" },
+      //   { name: "IOF: UAntwerpen", id: "54", color: "#83d0f5" }
+      // ];
       // immutable array of data
       var financeringArray = _.cloneDeep(this.financeringData);
       if (financeringArray) {
@@ -212,10 +212,16 @@ export default {
             });
           });
         }
+        // removing unnecessary fields before usage in table
+        var financeringArrayCleaned = _.cloneDeep(financeringArray);
+        financeringArrayCleaned.forEach(function(itemFin) {
+          let key = "field_fin_color";
+          delete itemFin[key];
+        });
         // table headers
         var tableHeader = [];
         // loop through array of financering
-        financeringArray.forEach(function(item) {
+        financeringArrayCleaned.forEach(function(item) {
           // loop through every financering
           Object.entries(item).forEach(([key, value]) => {
             var title = "";
@@ -230,9 +236,11 @@ export default {
                   tableHeader.push("Financiering");
                 }
               } else {
-                let year = title.slice(-4);
-                if (!tableHeader.includes(year)) {
-                  tableHeader.push(year);
+                if (title !== "field_fin_color") {
+                  let year = title.slice(-4);
+                  if (!tableHeader.includes(year)) {
+                    tableHeader.push(year);
+                  }
                 }
               }
             }
@@ -252,7 +260,7 @@ export default {
               text: "Total budget"
             },
             stackLabels: {
-              enabled: true,
+              enabled: false,
               style: {
                 fontWeight: "bold",
                 color:
@@ -297,7 +305,11 @@ export default {
         // column chart categories
         var chartCategories = [];
         for (let key of Object.keys(financeringArray[0])) {
-          if (key !== "nid" && key !== "field_proj_financiering") {
+          if (
+            key !== "nid" &&
+            key !== "field_proj_financiering" &&
+            key !== "field_fin_color"
+          ) {
             let year = key.slice(-4);
             chartCategories.push(year);
           }
@@ -310,7 +322,11 @@ export default {
           var data = [];
           var name = "";
           for (let [key, value] of Object.entries(item)) {
-            if (key !== "nid" && key !== "field_proj_financiering") {
+            if (
+              key !== "nid" &&
+              key !== "field_proj_financiering" &&
+              key !== "field_fin_color"
+            ) {
               data.push(parseFloat(value));
             }
             if (key === "field_proj_financiering") {
@@ -320,11 +336,12 @@ export default {
             financeringObj.data = data;
             financeringObj.type = "column";
           }
-          financeringColors.forEach(function(colorItem) {
-            if (colorItem.id === item.nid) {
-              financeringObj.color = colorItem.color;
-            }
-          });
+          // financeringColors.forEach(function(colorItem) {
+          //   if (colorItem.id === item.nid) {
+          //     financeringObj.color = colorItem.color;
+          //   }
+          // });
+          financeringObj.color = item.field_fin_color;
           chartSeries.push(financeringObj);
         });
         chartOptions.series = chartSeries;
@@ -355,7 +372,7 @@ export default {
         var notEpmtyProperties = notEmptyFunction(financeringArray[0]);
         // creating data for spline
         var splineData = [];
-        for (let counter = 2; counter < notEpmtyProperties; counter++) {
+        for (let counter = 3; counter < notEpmtyProperties; counter++) {
           var arrayValues = [];
           var sumProp = 0;
           financeringArray.forEach(function(item) {
@@ -382,7 +399,7 @@ export default {
       // object to return
       var result = {};
       result.tableHeader = tableHeader;
-      result.tableData = financeringArray;
+      result.tableData = financeringArrayCleaned;
       result.tableSums = splineData;
       result.chartOptions = chartOptions;
       return result;
