@@ -96,7 +96,7 @@ const _ = require("lodash");
 Vue.use(VueLodash, { name: "cloneDeep", lodash: { cloneDeep } });
 
 export default {
-  name: "Budget",
+  name: "ResearchGroups",
   components: { highcharts: Chart },
   data() {
     return {
@@ -124,17 +124,18 @@ export default {
           }
         });
       }
+      // removing empty keys and properties in financerings array
       if (removingKeys.length > 0) {
         array.forEach(function(itemFin) {
           removingKeys.forEach(function(itemKey) {
             delete itemFin[itemKey];
           });
         });
-      } // removing empty keys and properties in financerings array
+      }
       return array;
     },
 
-    // remove array any properties
+    // remove array selected properties
     removeArrayProperties(array, properties) {
       var newArray = _.cloneDeep(array); // new array of financerings for table
       // defining table data
@@ -171,8 +172,9 @@ export default {
           financeringObj.name = name;
           financeringObj.data = data;
           financeringObj.type = "column";
+          financeringObj.yAxis = 0;
         }
-        financeringObj.color = item.field_fin_color;
+        financeringObj.color = item.field_rg_color;
         chartSeries.push(financeringObj);
       });
       return chartSeries;
@@ -233,6 +235,86 @@ export default {
       return splineData;
     },
 
+    // spline chart data
+    splineChartCalcGroups(array) {
+      let arrayNew = _.cloneDeep(array);
+      let arrayNewCleaned = this.removeArrayProperties(arrayNew, [
+        "field_rg_color",
+        "field_resgroup_abbreviation"
+      ]);
+      var singleObjArrayCleaned = arrayNewCleaned[0];
+      var singleObjArrayCleanedKeys = Object.keys(singleObjArrayCleaned);
+      var splinePropertiesQuantity = singleObjArrayCleanedKeys.length; // quantity of properties
+      var splineData = []; // spline data
+      for (let counter = 0; counter < splinePropertiesQuantity; counter++) {
+        var arrayValues = [];
+        // var sumProp = 0;
+        arrayNewCleaned.forEach(function(item) {
+          let key = Object.keys(item)[counter];
+          let value = Object.values(item)[counter];
+          var floatValue = 0;
+          if (key !== "field_proj_resgroup" && key !== "nid") {
+            let propValue = value;
+            if (propValue === "") {
+              floatValue = 0;
+            } else {
+              floatValue = parseFloat(value);
+            }
+            if (floatValue !== 0) {
+              arrayValues.push(floatValue);
+            }
+          }
+        });
+        if (arrayValues.length > 0) {
+          // sumProp = arrayValues.reduce(function(sum, item) {
+          //   return sum + item;
+          // }, 0);
+          splineData.push(arrayValues.length);
+        }
+      }
+      return splineData;
+    },
+
+    // poa spline chart data
+    splinePoaChartCalcGroups(array) {
+      let arrayNew = _.cloneDeep(array);
+      let arrayNewCleaned = this.removeArrayProperties(arrayNew, [
+        "field_poa_color",
+        "field_poagroup_abbreviation"
+      ]);
+      var singleObjArrayCleaned = arrayNewCleaned[0];
+      var singleObjArrayCleanedKeys = Object.keys(singleObjArrayCleaned);
+      var splinePropertiesQuantity = singleObjArrayCleanedKeys.length; // quantity of properties
+      var splineData = []; // spline data
+      for (let counter = 0; counter < splinePropertiesQuantity; counter++) {
+        var arrayValues = [];
+        // var sumProp = 0;
+        arrayNewCleaned.forEach(function(item) {
+          let key = Object.keys(item)[counter];
+          let value = Object.values(item)[counter];
+          var floatValue = 0;
+          if (key !== "field_proj_poagroup" && key !== "nid") {
+            let propValue = value;
+            if (propValue === "") {
+              floatValue = 0;
+            } else {
+              floatValue = parseFloat(value);
+            }
+            if (floatValue !== 0) {
+              arrayValues.push(floatValue);
+            }
+          }
+        });
+        if (arrayValues.length > 0) {
+          // sumProp = arrayValues.reduce(function(sum, item) {
+          //   return sum + item;
+          // }, 0);
+          splineData.push(arrayValues.length);
+        }
+      }
+      return splineData;
+    },
+
     // table headers
     tableHeader(array) {
       let arrayNew = _.cloneDeep(array);
@@ -271,38 +353,73 @@ export default {
     // charts and table building
     async buildChart() {
       this.dataLoadingStatus = true;
-      const response = await fetch("json/rg.json");
+      // POA
+      var poaURL = "json/poagroup.json";
+      // RG
+      var rgURL = "json/rg.json";
+      const response = await fetch(rgURL);
+      const poaResponse = await fetch(poaURL); // PoA spline data
       if (response.ok) {
         let dataJson = await response.json();
         let financeringArray = _.cloneDeep(dataJson);
         var financeringArrayNotEmpty = this.removeArrayEmptyProperties(
           financeringArray
         );
+        // PoA spline
+        let poaDataJson = await poaResponse.json();
+        let poaFnanceringArray = _.cloneDeep(poaDataJson);
+        var poaFinanceringArrayNotEmpty = this.removeArrayEmptyProperties(
+          poaFnanceringArray
+        );
         // column chart options
         var chartOptions = {
           title: {
-            text: "Budget chart"
+            text: "Diversiteit"
           },
           xAxis: {
             categories: this.columnChartCategories(financeringArrayNotEmpty)
           },
-          yAxis: {
-            min: 0,
-            title: {
-              text: "Total budget"
-            },
-            stackLabels: {
-              enabled: false,
-              style: {
-                fontWeight: "bold",
-                color:
-                  // theme
-                  (Highcharts.defaultOptions.title.style &&
-                    Highcharts.defaultOptions.title.style.color) ||
-                  "gray"
+          yAxis: [
+            {
+              // left yAxis
+              min: 0,
+              title: {
+                text: ""
+              },
+              labels: {
+                formatter: function() {
+                  return "€ " + Highcharts.numberFormat(this.value, 2);
+                }
+              },
+              stackLabels: {
+                enabled: false,
+                style: {
+                  fontWeight: "bold",
+                  color:
+                    // theme
+                    (Highcharts.defaultOptions.title.style &&
+                      Highcharts.defaultOptions.title.style.color) ||
+                    "gray"
+                }
               }
+            },
+            {
+              // right yAxis
+              title: {
+                text: "",
+                style: {
+                  color: "#88021a"
+                }
+              },
+              labels: {
+                format: "{value}",
+                style: {
+                  color: "#88021a"
+                }
+              },
+              opposite: true
             }
-          },
+          ],
           legend: {
             layout: "vertical",
             align: "right",
@@ -326,24 +443,46 @@ export default {
               dataLabels: {
                 enabled: false
               }
+            },
+            line: {
+              lineWidth: 2
+              // dashStyle: "dash",
             }
           },
           series: this.columnChartSeries(financeringArrayNotEmpty)
         };
         // spline chart
         var spline = {
-          type: "spline",
-          name: "Total",
-          data: this.splineChartData(financeringArrayNotEmpty),
           color: "#88021a",
-          // dashStyle: "dash",
+          yAxis: 1,
+          type: "line",
+          name: "Research groups",
+          data: this.splineChartCalcGroups(financeringArrayNotEmpty),
           marker: {
+            enabled: false,
             lineWidth: 2,
             lineColor: "#88021a",
-            fillColor: "white"
+            fillColor: "#ffffff",
+            radius: 2
           }
         };
         chartOptions.series.push(spline); // add spline chart to column chart
+        // poa spline chart
+        var poaSpline = {
+          color: "#1192d1",
+          yAxis: 1,
+          type: "line",
+          name: "PoA groups",
+          data: this.splinePoaChartCalcGroups(poaFinanceringArrayNotEmpty),
+          marker: {
+            enabled: false,
+            lineWidth: 2,
+            lineColor: "#1192d1",
+            fillColor: "#ffffff",
+            radius: 2
+          }
+        };
+        chartOptions.series.push(poaSpline); // add PoA spline chart to column chart
         // result object to return
         var result = {};
         result.tableHeader = this.tableHeader(financeringArrayNotEmpty);

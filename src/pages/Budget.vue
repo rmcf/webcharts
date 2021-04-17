@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="text-h3 q-mt-lg text-center text-grey-8 text-weight-light">
-      Budget
+      Budget onderzoeksprojecten
     </div>
     <div class="q-pa-lg">
       <!-- buttons -->
@@ -266,7 +266,9 @@ export default {
     // charts and table building
     async buildChart() {
       this.dataLoadingStatus = true;
-      const response = await fetch("json/finance.json");
+      // FIN
+      var budgetURL = "json/finance.json";
+      const response = await fetch(budgetURL);
       if (response.ok) {
         let dataJson = await response.json();
         let financeringArray = _.cloneDeep(dataJson);
@@ -276,7 +278,7 @@ export default {
         // column chart options
         var chartOptions = {
           title: {
-            text: "Budget chart"
+            text: "Budget onderzoeksprojecten"
           },
           xAxis: {
             categories: this.columnChartCategories(financeringArrayNotEmpty)
@@ -285,6 +287,11 @@ export default {
             min: 0,
             title: {
               text: "Total budget"
+            },
+            labels: {
+              formatter: function() {
+                return "€ " + Highcharts.numberFormat(this.value, 2);
+              }
             },
             stackLabels: {
               enabled: false,
@@ -321,22 +328,27 @@ export default {
               dataLabels: {
                 enabled: false
               }
+            },
+            line: {
+              lineWidth: 2,
+              color: "#88021a",
+              dashStyle: "dash",
+              marker: {
+                enabled: false,
+                lineWidth: 2,
+                lineColor: "#88021a",
+                fillColor: "#ffffff",
+                radius: 2
+              }
             }
           },
           series: this.columnChartSeries(financeringArrayNotEmpty)
         };
         // spline chart
         var spline = {
-          type: "spline",
+          type: "line",
           name: "Total",
-          data: this.splineChartData(financeringArrayNotEmpty),
-          color: "#88021a",
-          // dashStyle: "dash",
-          marker: {
-            lineWidth: 2,
-            lineColor: "#88021a",
-            fillColor: "white"
-          }
+          data: this.splineChartData(financeringArrayNotEmpty)
         };
         chartOptions.series.push(spline); // add spline chart to column chart
         // result object to return

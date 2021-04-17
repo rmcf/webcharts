@@ -11,11 +11,11 @@
         <div>
           <q-btn
             type="a"
-            href="https://rmcf.github.io/webcharts"
+            href="/webcharts"
             flat
-            round
-            dense
+            color="red"
             icon="settings"
+            label="Data"
           />
         </div>
       </q-toolbar>
@@ -49,7 +49,7 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label>Budget</q-item-label>
-                <q-item-label caption>Budget</q-item-label>
+                <q-item-label caption>Budget onderzoeksprojecten</q-item-label>
               </q-item-section>
             </q-item>
 
@@ -60,7 +60,7 @@
 
               <q-item-section>
                 <q-item-label>Research groups</q-item-label>
-                <q-item-label caption>research groups</q-item-label>
+                <q-item-label caption>Research groups</q-item-label>
               </q-item-section>
             </q-item>
 
