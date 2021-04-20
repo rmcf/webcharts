@@ -11,12 +11,6 @@
           <q-btn
             @click="buildChart()"
             color="red"
-            icon="leaderboard"
-            label="load"
-          />
-          <q-btn
-            @click="buildChart()"
-            color="red"
             icon="cached"
             label="update"
           />
@@ -363,6 +357,9 @@ export default {
       }
       this.dataLoadingStatus = false;
     }
+  },
+  mounted() {
+    this.buildChart();
   }
 };
 </script>
