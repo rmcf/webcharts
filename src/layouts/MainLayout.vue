@@ -3,7 +3,14 @@
     <q-header elevated>
       <q-toolbar class="bg-white text-grey-8">
         <!-- @click="leftDrawerOpen = !leftDrawerOpen" -->
-        <q-btn flat dense round icon="menu" aria-label="Menu" />
+        <q-btn
+          @click="drawerLeft = !drawerLeft"
+          flat
+          dense
+          round
+          icon="menu"
+          aria-label="Menu"
+        />
         <q-toolbar-title>
           PoA Charts
         </q-toolbar-title>
@@ -21,7 +28,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" content-class="q-pt-lg">
+    <q-drawer v-model="drawerLeft" content-class="q-pt-lg">
       <!-- card -->
       <div class="q-pa-md">
         <q-card class="my-card">
@@ -90,7 +97,7 @@ export default {
   name: "MainLayout",
   data() {
     return {
-      leftDrawerOpen: true
+      drawerLeft: true
     };
   }
 };
