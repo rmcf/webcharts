@@ -110,7 +110,7 @@ export default {
         array.forEach(function(item) {
           let key = Object.keys(item)[counter]; // key of this item
           let value = item[key]; // value of this property
-          if (value === "") {
+          if (value === "" || value === "0" || value === "0.00") {
             counterEmpty = counterEmpty + 1;
             if (counterEmpty == objectsQuantity) {
               removingKeys.push(key);
