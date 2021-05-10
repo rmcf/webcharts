@@ -14,9 +14,9 @@
     "field_budget_2020": "645670.28",
     "field_budget_2021": "185416.55",
     "field_budget_2022": "70354.05",
-    "field_budget_2023": "",
-    "field_budget_2024": "",
-    "field_budget_2025": ""
+    "field_budget_2023": "0",
+    "field_budget_2024": "0",
+    "field_budget_2025": "0.00"
   },
   {
     "nid": "51",
@@ -32,7 +32,7 @@
     "field_budget_2019": "200833.33",
     "field_budget_2020": "409375.00",
     "field_budget_2021": "151666.67",
-    "field_budget_2022": "0.00",
+    "field_budget_2022": "",
     "field_budget_2023": "",
     "field_budget_2024": "",
     "field_budget_2025": ""
